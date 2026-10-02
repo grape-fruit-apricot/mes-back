@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hansol.mes.production.model.dao.ProductionResultDao">
+    <sql id="selectBase">SELECT p.result_id, w.work_order_id, w.order_no, i.item_id, i.item_code, i.item_name, w.planned_qty, p.good_qty, p.defect_qty, p.defect_reason, p.recorded_at, g.receipt_id, g.received_at FROM production_result p JOIN work_order w ON w.work_order_id = p.work_order_id JOIN item i ON i.item_id = w.item_id LEFT JOIN goods_receipt g ON g.result_id = p.result_id</sql>
+    <select id="search" resultType="com.hansol.mes.production.model.dto.ProductionResultResponse">
+        <include refid="selectBase"/>
+        <where>
+            <include refid="com.hansol.mes.common.Query.workFilters"/>
+            <if test="from != null">AND p.recorded_at &gt;= #{from, jdbcType=DATE}</if>
+            <if test="to != null">AND p.recorded_at &lt; (#{to, jdbcType=DATE} + 1)</if>
+        </where>
+        ORDER BY p.result_id DESC
+        <include refid="com.hansol.mes.common.Query.page"/>
+    </select>
+    <select id="find" resultType="com.hansol.mes.production.model.dto.ProductionResultResponse">
+        <include refid="selectBase"/> WHERE p.result_id = #{id}
+    </select>
+    <update id="complete" statementType="CALLABLE">
+        {call complete_work(#{orderId, mode=IN, jdbcType=NUMERIC},
+            #{request.goodQty, mode=IN, jdbcType=NUMERIC},
+            #{request.defectQty, mode=IN, jdbcType=NUMERIC},
+            #{request.defectReason, mode=IN, jdbcType=VARCHAR})}
+    </update>
+    <select id="findByWorkOrderId" resultType="com.hansol.mes.production.model.dto.ProductionResultResponse">
+        <include refid="selectBase"/> WHERE w.work_order_id = #{orderId}
+    </select>
+</mapper>
+

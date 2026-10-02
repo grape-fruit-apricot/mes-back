@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hansol.mes.common.Query">
+    <!-- Each caller supplies the same item alias i. All values use bound parameters. -->
+    <sql id="itemFilters">
+        <if test="itemId != null">AND i.item_id = #{itemId}</if>
+        <if test="keyword != null and keyword != ''">
+            AND (INSTR(LOWER(i.item_code), LOWER(#{keyword})) &gt; 0
+                OR INSTR(LOWER(i.item_name), LOWER(#{keyword})) &gt; 0)
+        </if>
+    </sql>
+    <sql id="workFilters">
+        <include refid="com.hansol.mes.common.Query.itemFilters"/>
+        <if test="workOrderId != null">AND w.work_order_id = #{workOrderId}</if>
+        <if test="status != null">AND w.status = #{status}</if>
+    </sql>
+    <sql id="page">OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY</sql>
+</mapper>
+

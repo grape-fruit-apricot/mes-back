@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hansol.mes.receipt.model.dao.GoodsReceiptDao">
+    <sql id="selectBase">SELECT g.receipt_id, p.result_id, w.work_order_id, w.order_no, i.item_id, i.item_code, i.item_name, g.received_qty, g.received_at FROM goods_receipt g JOIN production_result p ON p.result_id = g.result_id JOIN work_order w ON w.work_order_id = p.work_order_id JOIN item i ON i.item_id = w.item_id</sql>
+    <select id="search" resultType="com.hansol.mes.receipt.model.dto.GoodsReceiptResponse">
+        <include refid="selectBase"/>
+        <where>
+            <include refid="com.hansol.mes.common.Query.workFilters"/>
+            <if test="from != null">AND g.received_at &gt;= #{from, jdbcType=DATE}</if>
+            <if test="to != null">AND g.received_at &lt; (#{to, jdbcType=DATE} + 1)</if>
+        </where>
+        ORDER BY g.receipt_id DESC
+        <include refid="com.hansol.mes.common.Query.page"/>
+    </select>
+    <select id="find" resultType="com.hansol.mes.receipt.model.dto.GoodsReceiptResponse">
+        <include refid="selectBase"/> WHERE g.receipt_id = #{id}
+    </select>
+    <update id="receive" statementType="CALLABLE">
+        {call receive_goods(#{resultId, mode=IN, jdbcType=NUMERIC})}
+    </update>
+    <select id="findByResultId" resultType="com.hansol.mes.receipt.model.dto.GoodsReceiptResponse">
+        <include refid="selectBase"/> WHERE p.result_id = #{resultId}
+    </select>
+</mapper>
+
